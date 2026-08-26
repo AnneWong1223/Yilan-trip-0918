@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌕 宜蘭 3 天 2 夜中秋團聚與溫泉之旅 🥮</title>
+  <!-- 引入業界最穩定的 CSV 解析套件 PapaParse -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      --night-sky: #0f172a;
+      --night-blue: #1e1b4b;
+      --moon-gold: #d97706;
+      --moon-yellow: #f59e0b;
+      --moon-light: #fef3c7;
+      --pomelo-green: #059669;
+      --pomelo-light: #ecfdf5;
+      --bg: #fdfbf7;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --accent: #dc2626;
+      --tag-bg: #f8fafc;
+      --border: #e2e8f0;
+      --shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 16px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    /* 🌕 中秋月夜 Header */
+    header {
+      text-align: center;
+      padding: 24px 12px;
+      background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #312e81 100%);
+      border-radius: 18px;
+      color: #fef3c7;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 18px rgba(30, 27, 75, 0.35);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    header::after {
+      content: "🌕";
+      position: absolute;
+      right: 15px;
+      top: 12px;
+      font-size: 2.2rem;
+      opacity: 0.85;
+    }
+    header h1 {
+      font-size: 1.55rem;
+      color: #fbbf24;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    header p {
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      opacity: 0.9;
+    }
+    /* 狀態列與同步按鈕 */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 10px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid #fed7aa;
+    }
+    .sync-text {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+    .btn-sync {
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+      transition: opacity 0.2s;
+    }
+    .btn-sync:hover { opacity: 0.9; }
+    /* 頁籤切換按鈕 (Tabs) */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      min-width: 75px;
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      color: #fbbf24;
+      border-color: #f59e0b;
+      box-shadow: 0 2px 8px rgba(30, 27, 75, 0.2);
+    }
+    /* 行程天數標題 */
+    .day-section { margin-bottom: 24px; }
+    .day-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-left: 4px;
+    }
+    .day-badge {
+      background: linear-gradient(135deg, #b45309, #d97706);
+      color: #ffffff;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
+    }
+    .day-badge.day3-alt {
+      background: linear-gradient(135deg, #047857, #059669);
+    }
+    .day-date {
+      font-size: 0.95rem;
+      color: #475569;
+      font-weight: 600;
+    }
+    /* 行程項目卡片 */
+    .item-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid #f1f5f9;
+      border-left: 4px solid #f59e0b;
+    }
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .item-time {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid #fde68a;
+    }
+    .item-title {
+      font-size: 1.08rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin: 4px 0 8px 0;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .tag {
+      background: var(--tag-bg);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .tag.cost {
+      background: #fef2f2;
+      color: var(--accent);
+      font-weight: 600;
+      border: 1px solid #fecaca;
+    }
+    .tag.trans {
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 600;
+      border: 1px solid #a7f3d0;
+    }
+    .item-detail {
+      font-size: 0.88rem;
+      color: #334155;
+      background: #fffbeb;
+      padding: 10px;
+      border-radius: 8px;
+      border-left: 3px solid #d97706;
+      margin-top: 6px;
+    }
+    .item-detail-row { margin-bottom: 4px; }
+    .item-detail-row:last-child { margin-bottom: 0; }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 10px;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: #fde68a; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🥮 宜蘭 3 天 2 夜中秋溫泉與探親遊</h1>
+      <p>永和 ➔ 礁溪中天溫泉 ➔ 金六結探弟懇親 ➔ 頭城海景 / 礁溪漫活</p>
+    </header>
+
+    <div class="status-bar">
+      <span class="sync-text" id="sync-status">⏳ 正在連線 Google 試算表...</span>
+      <button class="btn-sync" onclick="fetchLiveData()">🔄 即時同步</button>
+    </div>
+
+    <!-- 頁籤按鈕 (包含中秋圖示) -->
+    <div class="tabs" id="tab-container">
+      <button class="tab-btn active" onclick="filterDay('ALL')">全部行程 📜</button>
+      <button class="tab-btn" onclick="filterDay('Day 1')">Day 1 礁溪 ♨️</button>
+      <button class="tab-btn" onclick="filterDay('Day 2')">Day 2 懇親 🍗</button>
+      <button class="tab-btn" onclick="filterDay('Day 3')">Day 3 頭城線 🌊</button>
+      <button class="tab-btn" onclick="filterDay('Day 3.1')">Day 3.1 礁溪線 🌿</button>
+    </div>
+
+    <!-- 內容呈現區 -->
+    <div id="content-container"></div>
+  </div>
+
+  <script>
+    // 🔗 ⚠️ 請在這裡貼上妳在 Google 試算表「發布到網路」複製出來的 CSV 網址：
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRyrpq_LrlWj99ykNeOhagEHl9GYQlm7fRyO69K8iNeegQgDgKnUpc0jA-OGX8uJw/pubhtml?gid=469035628&single=true";
+
+    let allTripData = [];
+    let currentFilter = 'ALL';
+
+    function buildHeaderMap(headers) {
+      const map = {};
+      headers.forEach((h, i) => {
+        if (!h) return;
+        const name = String(h).trim();
+        if (name.includes('天數')) map.day = i;
+        else if (name.includes('日期')) map.date = i;
+        else if (name.includes('時間')) map.time = i;
+        else if (name.includes('行程') || name.includes('主題')) map.title = i;
+        else if (name.includes('動線') || name.includes('交通動線')) map.route = i;
+        else if (name.includes('工具') || name.includes('交通工具')) map.trans = i;
+        else if (name.includes('車程')) map.driveTime = i;
+        else if (name.includes('停留')) map.stayTime = i;
+        else if (name.includes('費用') || name.includes('花費')) map.cost = i;
+        else if (name.includes('備註') || name.includes('提醒')) map.remark = i;
+      });
+      return map;
+    }
+
+    function renderItinerary() {
+      const contentEl = document.getElementById('content-container');
+      
+      let filtered = [];
+      if (currentFilter === 'ALL') {
+        filtered = allTripData;
+      } else if (currentFilter === 'Day 3') {
+        filtered = allTripData.filter(item => item.day === 'Day 3');
+      } else if (currentFilter === 'Day 3.1') {
+        filtered = allTripData.filter(item => item.day === 'Day 3.1');
+      } else {
+        filtered = allTripData.filter(item => item.day && item.day.includes(currentFilter));
+      }
+
+      if (filtered.length === 0) {
+        contentEl.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">此分類目前無行程。</div>`;
+        return;
+      }
+
+      const groups = {};
+      filtered.forEach(item => {
+        const key = `${item.day || '行程'}__${item.date || ''}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(item);
+      });
+
+      let html = "";
+      for (const groupKey in groups) {
+        const [dayName, dateName] = groupKey.split('__');
+        const isAlt = dayName.includes('3.1');
+
+        html += `
+          <div class="day-section">
+            <div class="day-header">
+              <span class="day-badge ${isAlt ? 'day3-alt' : ''}">${dayName}</span>
+              ${dateName ? `<span class="day-date">${dateName}</span>` : ''}
+            </div>
+        `;
+
+        groups[groupKey].forEach(item => {
+          const mapQuery = encodeURIComponent(item.title.replace(/【.*?】/g, '').replace(/\(.*?\)/g, ''));
+          const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+
+          html += `
+            <div class="item-card">
+              <div class="item-top">
+                <span class="item-time">⏰ ${item.time || '行程'}</span>
+              </div>
+              <div class="item-title">${item.title}</div>
+              
+              <div class="tags">
+                ${item.trans && item.trans !== '-' ? `<span class="tag trans">🚌 ${item.trans}</span>` : ''}
+                ${item.stayTime && item.stayTime !== '-' ? `<span class="tag">⏳ 建議停留: ${item.stayTime}</span>` : ''}
+                ${item.cost && item.cost !== '-' && item.cost !== '0' ? `<span class="tag cost">💰 ${item.cost}</span>` : ''}
+              </div>
+
+              ${(item.route || item.remark) ? `
+                <div class="item-detail">
+                  ${item.route && item.route !== '-' ? `<div class="item-detail-row">📍 <strong>動線：</strong>${item.route}</div>` : ''}
+                  ${item.remark && item.remark !== '-' ? `<div class="item-detail-row">💡 <strong>備註：</strong>${item.remark}</div>` : ''}
+                </div>
+              ` : ''}
+
+              <a href="${mapUrl}" target="_blank" class="nav-btn">📍 Google 地圖導航</a>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      contentEl.innerHTML = html;
+    }
+
+    function filterDay(day) {
+      currentFilter = day;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.includes(day) || (day === 'ALL' && btn.innerText.includes('全部')));
+      });
+      renderItinerary();
+    }
+
+    function fetchLiveData() {
+      const statusEl = document.getElementById('sync-status');
+      statusEl.innerText = "⏳ 正在連線 Google 試算表...";
+
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: false,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (results.data && results.data.length > 1) {
+            const rows = results.data;
+            let headerIdx = rows.findIndex(r => r.some(cell => typeof cell === 'string' && (cell.includes('天數') || cell.includes('行程'))));
+            if (headerIdx === -1) headerIdx = 0;
+
+            const headerMap = buildHeaderMap(rows[headerIdx]);
+            const dataRows = rows.slice(headerIdx + 1).filter(r => r[0] && r[0].trim() !== "");
+
+            if (dataRows.length > 0) {
+              allTripData = dataRows.map(r => {
+                const getVal = (f) => (headerMap[f] !== undefined && r[headerMap[f]]) ? String(r[headerMap[f]]).trim() : "";
+                return {
+                  day: getVal('day'),
+                  date: getVal('date'),
+                  time: getVal('time'),
+                  title: getVal('title'),
+                  route: getVal('route'),
+                  trans: getVal('trans'),
+                  stayTime: getVal('stayTime'),
+                  cost: getVal('cost'),
+                  remark: getVal('remark')
+                };
+              });
+
+              renderItinerary();
+              const now = new Date();
+              const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+              statusEl.innerText = `✅ 已同步最新行程（${timeStr}）`;
+              return;
+            }
+          }
+          statusEl.innerText = `❌ 無法解析試算表內容`;
+        },
+        error: function(err) {
+          console.warn("無法取得線上試算表", err);
+          statusEl.innerText = `❌ 連線失敗，請確認網路或試算表發布狀態`;
+        }
+      });
+    }
+
+    fetchLiveData();
+  </script>
+</body>
+</html>
