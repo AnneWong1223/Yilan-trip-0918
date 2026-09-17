@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🌕 宜蘭 3 天 2 夜中秋溫泉與探親遊 🥮</title>
+  <!-- 引入穩定 CSV 解析套件 PapaParse -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root {
@@ -65,6 +66,7 @@
       color: #e2e8f0;
       opacity: 0.9;
     }
+    /* 狀態列 */
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -96,10 +98,12 @@
       transition: opacity 0.2s;
     }
     .btn-sync:hover { opacity: 0.9; }
+
+    /* 主頁籤按鈕 */
     .tabs {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       overflow-x: auto;
       padding-bottom: 4px;
     }
@@ -108,9 +112,9 @@
       min-width: 80px;
       background: var(--card-bg);
       border: 1px solid #e2e8f0;
-      padding: 8px 10px;
+      padding: 9px 10px;
       border-radius: 10px;
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       font-weight: 600;
       color: var(--text-muted);
       cursor: pointer;
@@ -124,6 +128,50 @@
       border-color: #f59e0b;
       box-shadow: 0 2px 8px rgba(30, 27, 75, 0.2);
     }
+
+    /* 🌟 Day 1 方案切換膠囊專區 (解決拉到最下面的神設計) */
+    .plan-selector-box {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
+    }
+    .plan-selector-title {
+      font-size: 0.86rem;
+      font-weight: bold;
+      color: #92400e;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .plan-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .plan-btn {
+      flex: 1;
+      padding: 9px 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #475569;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .plan-btn.active {
+      background: linear-gradient(135deg, #b45309, #d97706);
+      color: #ffffff;
+      border-color: #92400e;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+    }
+
+    /* 行程項目卡片 */
     .day-section { margin-bottom: 24px; }
     .day-header {
       display: flex;
@@ -141,6 +189,9 @@
       font-size: 0.95rem;
       box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
     }
+    .day-badge.backup {
+      background: linear-gradient(135deg, #4338ca, #6366f1);
+    }
     .day-date {
       font-size: 0.95rem;
       color: #475569;
@@ -154,6 +205,10 @@
       box-shadow: var(--shadow);
       border: 1px solid #f1f5f9;
       border-left: 4px solid #f59e0b;
+    }
+    .item-card.backup-card {
+      border-left-color: #6366f1;
+      background: #faf5ff;
     }
     .item-top {
       display: flex;
@@ -210,6 +265,10 @@
       border-left: 3px solid #d97706;
       margin-top: 6px;
     }
+    .item-detail.backup-detail {
+      background: #f3e8ff;
+      border-left-color: #7c3aed;
+    }
     .item-detail-row { margin-bottom: 4px; }
     .item-detail-row:last-child { margin-bottom: 0; }
     .nav-btn {
@@ -243,7 +302,7 @@
       <button class="btn-sync" onclick="fetchLiveData()">🔄 即時同步</button>
     </div>
 
-    <!-- 頁籤按鈕 (俐落 3 天版本) -->
+    <!-- 主頁籤按鈕 -->
     <div class="tabs" id="tab-container">
       <button class="tab-btn active" onclick="filterDay('ALL')">全部行程 📜</button>
       <button class="tab-btn" onclick="filterDay('Day 1')">Day 1 去程 🚗</button>
@@ -251,14 +310,23 @@
       <button class="tab-btn" onclick="filterDay('Day 3')">Day 3 員山 🌿</button>
     </div>
 
+    <!-- 🌟 頂部去程方案切換區（點選立即切換，免再往下滑） -->
+    <div class="plan-selector-box" id="day1-plan-box">
+      <div class="plan-selector-title">🔀 點選切換 Day 1 去程交通方案：</div>
+      <div class="plan-btn-group">
+        <button class="plan-btn active" id="btn-plan1" onclick="switchDay1Plan('方案1')">🚗 方案 1：iRent 自駕直達</button>
+        <button class="plan-btn" id="btn-plan2" onclick="switchDay1Plan('方案2')">🚌 方案 2：科技大樓客運＋小黃</button>
+      </div>
+    </div>
+
+    <!-- 內容呈現區 -->
     <div id="content-container"></div>
   </div>
 
   <script>
-    // 🔗 ⚠️ 請在這裡貼上步驟 1 複製的 CSV 網址：
+    // 🔗 您的 Google 試算表 CSV 專屬網址
     let CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRyrpq_LrlWj99ykNeOhagEHl9GYQlm7fRyO69K8iNeegQgDgKnUpc0jA-OGX8uJw/pub?output=csv";
 
-    // 智慧防呆：自動將 pubhtml 轉為 pub 及 csv 輸出
     if (CSV_URL.includes('/pubhtml')) {
       CSV_URL = CSV_URL.replace('/pubhtml', '/pub');
       if (!CSV_URL.includes('output=csv')) {
@@ -268,6 +336,7 @@
 
     let allTripData = [];
     let currentFilter = 'ALL';
+    let currentDay1Plan = '方案1'; // 預設方案 1
 
     function buildHeaderMap(headers) {
       const map = {};
@@ -290,16 +359,36 @@
 
     function renderItinerary() {
       const contentEl = document.getElementById('content-container');
-      
-      const filtered = (currentFilter === 'ALL') 
-        ? allTripData 
-        : allTripData.filter(item => item.day && item.day.includes(currentFilter));
+      const planBox = document.getElementById('day1-plan-box');
+
+      // 控制頂部方案切換盒的顯示時機（在全部行程或 Day 1 時顯示）
+      if (currentFilter === 'ALL' || currentFilter === 'Day 1') {
+        planBox.style.display = 'block';
+      } else {
+        planBox.style.display = 'none';
+      }
+
+      // 依據目前頁籤與選擇的 Day 1 方案精準過濾
+      let filtered = allTripData.filter(item => {
+        if (!item.day) return false;
+        
+        // Day 1: 只保留目前選中的方案（方案1 或 方案2）
+        if (item.day.includes('Day 1')) {
+          if (currentFilter !== 'ALL' && currentFilter !== 'Day 1') return false;
+          return item.day.includes(currentDay1Plan);
+        }
+        
+        // Day 2 & Day 3: 依標籤正常顯示
+        if (currentFilter === 'ALL') return true;
+        return item.day.includes(currentFilter);
+      });
 
       if (filtered.length === 0) {
         contentEl.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">此分類目前無行程。</div>`;
         return;
       }
 
+      // 分組渲染
       const groups = {};
       filtered.forEach(item => {
         const key = `${item.day || '行程'}__${item.date || ''}`;
@@ -310,11 +399,12 @@
       let html = "";
       for (const groupKey in groups) {
         const [dayName, dateName] = groupKey.split('__');
+        const isBackup = dayName.includes('備案');
 
         html += `
           <div class="day-section">
             <div class="day-header">
-              <span class="day-badge">${dayName}</span>
+              <span class="day-badge ${isBackup ? 'backup' : ''}">${dayName}</span>
               ${dateName ? `<span class="day-date">${dateName}</span>` : ''}
             </div>
         `;
@@ -322,11 +412,13 @@
         groups[groupKey].forEach(item => {
           const mapQuery = encodeURIComponent(item.title.replace(/【.*?】/g, '').replace(/\(.*?\)/g, ''));
           const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+          const isItemBackup = (item.day && item.day.includes('備案')) || (item.title && item.title.includes('備案'));
 
           html += `
-            <div class="item-card">
+            <div class="item-card ${isItemBackup ? 'backup-card' : ''}">
               <div class="item-top">
                 <span class="item-time">⏰ ${item.time || '行程'}</span>
+                ${isItemBackup ? `<span class="tag" style="background:#ede9fe; color:#6d28d9; font-weight:bold;">🎤 彈性備案</span>` : ''}
               </div>
               <div class="item-title">${item.title}</div>
               
@@ -337,7 +429,7 @@
               </div>
 
               ${(item.route || item.remark) ? `
-                <div class="item-detail">
+                <div class="item-detail ${isItemBackup ? 'backup-detail' : ''}">
                   ${item.route && item.route !== '-' ? `<div class="item-detail-row">📍 <strong>動線：</strong>${item.route}</div>` : ''}
                   ${item.remark && item.remark !== '-' ? `<div class="item-detail-row">💡 <strong>備註：</strong>${item.remark}</div>` : ''}
                 </div>
@@ -359,6 +451,14 @@
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.innerText.includes(day) || (day === 'ALL' && btn.innerText.includes('全部')));
       });
+      renderItinerary();
+    }
+
+    // 🌟 點選切換 Day 1 方案（免往下滑）
+    function switchDay1Plan(plan) {
+      currentDay1Plan = plan;
+      document.getElementById('btn-plan1').classList.toggle('active', plan === '方案1');
+      document.getElementById('btn-plan2').classList.toggle('active', plan === '方案2');
       renderItinerary();
     }
 
